@@ -11,14 +11,17 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const PORT = process.env.PORT;
 
 function newTitle(titl, desc) {
-    const article = new Article({
+    const article = new ArticleModel({
         title: titl,
         description: desc
     })
-    article.save().then(() => {
-        console.log("User Saved")
+    return article.save().then(savedData => {
+        console.log('data saved')
+        return savedData
+    }).catch(err=>{
+        console.log(err)
     })
-}
+};
 
 function findTitle(titl) {
     return ArticleModel.find({ title: titl }).then(doc => {
@@ -26,9 +29,8 @@ function findTitle(titl) {
         return data
     }).catch(err => {
         console.log(err)
-    });
+    })
 }
-
 
 mongoose.connect(`mongodb+srv://${process.env.DBUSR}:${process.env.DBPASS}@cluster0.h9uveex.mongodb.net/${process.env.DBNAME}`, {
     useNewUrlParser: true,
@@ -48,11 +50,29 @@ app.listen(PORT, () => {
 app.get('/', (req, res) => {
     res.send("Hello")
 })
-app.post('/', (req, res) => {
-    console.log('received title', req.body.title)
+app.post('/usr', (req, res) => {
+    console.log('received title to get user', req.body.title)
     findTitle(req.body.title).then(data => {
         res.send(data)
     }).catch(error => {
         console.error(error);
     });
+})
+
+app.post('/signup', (req, res) => {
+    console.log('received title ' + req.body.title + ' and desc '+ req.body.desc +' to create user')
+    newTitle(req.body.title, req.body.desc).then(savedData => {
+        res.send(savedData)
+    }).catch(error => {
+        console.error(error);
+    });
+});
+
+app.delete('/',(req, res)=>{
+    ArticleModel.deleteMany().then(
+        console.log('Deleted Every Thing'),
+        res.send("Deleted Everything")
+    ).catch(err=>{
+        console.log(err)
+    })
 })
